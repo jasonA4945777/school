@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>出院準備需求評估表單｜收案工具</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+  :root{
+    --bg:#EEF6F4;
+    --surface:#FFFFFF;
+    --surface-alt:#F4FAF8;
+    --border:#DCE8E4;
+    --ink:#1E2B2A;
+    --ink-soft:#54655F;
+    --ink-faint:#8C9C97;
+    --teal:#175F67;
+    --teal-dark:#0D4247;
+    --teal-light:#E2EFEC;
+    --gold:#B78A2E;
+    --coral:#C96A45;
+    --success:#3C8763;
+    --radius:16px;
+    --radius-sm:10px;
+    --shadow: 0 2px 10px rgba(15,50,48,0.06), 0 10px 30px rgba(15,50,48,0.05);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 500px at 90% -10%, #DCEEE8 0%, transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Noto Sans TC', 'PingFang TC', sans-serif;
+    line-height:1.6;
+    min-height:100vh;
+  }
+  h1,h2,h3{font-family:'Noto Serif TC','Noto Sans TC',serif; margin:0; color:var(--teal-dark);}
+  .wrap{max-width:760px; margin:0 auto; padding:28px 18px 80px;}
+
+  /* Header */
+  .hero{
+    display:flex; align-items:center; gap:16px;
+    padding:22px 22px;
+    background:linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
+    border-radius:20px;
+    color:#fff;
+    box-shadow:var(--shadow);
+    margin-bottom:22px;
+  }
+  .hero-icon{flex:0 0 auto; width:54px; height:54px;}
+  .hero h1{color:#fff; font-size:1.28rem; font-weight:700;}
+  .hero p{margin:4px 0 0; color:#CFE7E1; font-size:0.88rem;}
+
+  /* Progress */
+  .progress{
+    display:flex; gap:6px; margin-bottom:22px;
+    padding:0 2px;
+  }
+  .progress .seg{
+    flex:1; height:7px; border-radius:6px; background:#D6E6E2; position:relative; overflow:hidden;
+  }
+  .progress .seg.done{background:var(--teal);}
+  .progress .seg.current{background:linear-gradient(90deg, var(--teal) 50%, #D6E6E2 50%);}
+  .progress-label{
+    text-align:center; font-size:0.82rem; color:var(--ink-soft); margin-bottom:18px; letter-spacing:0.02em;
+  }
+
+  /* Card */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:26px 24px;
+    margin-bottom:18px;
+  }
+  .card h2{font-size:1.12rem; margin-bottom:4px;}
+  .card .hint{color:var(--ink-soft); font-size:0.86rem; margin-bottom:18px;}
+
+  .field{margin-bottom:22px;}
+  .field:last-child{margin-bottom:0;}
+  .field > label.q{
+    display:block; font-weight:600; font-size:0.98rem; margin-bottom:10px; color:var(--ink);
+  }
+  .field > label.q .req{color:var(--coral); font-weight:700; margin-left:2px;}
+  .field .sub{color:var(--ink-soft); font-size:0.82rem; margin-top:-6px; margin-bottom:10px;}
+
+  input[type=text], input[type=tel]{
+    width:100%; padding:12px 14px; border-radius:var(--radius-sm);
+    border:1.5px solid var(--border); background:var(--surface-alt);
+    font-size:1rem; font-family:inherit; color:var(--ink);
+  }
+  input[type=text]:focus, input[type=tel]:focus{
+    outline:none; border-color:var(--teal); background:#fff;
+    box-shadow:0 0 0 3px rgba(23,95,103,0.12);
+  }
+
+  .options{display:flex; flex-direction:column; gap:8px;}
+  .options.grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  @media (max-width:480px){ .options.grid{grid-template-columns:1fr;} }
+
+  .opt{
+    display:flex; align-items:center; gap:10px;
+    padding:11px 14px; border-radius:var(--radius-sm);
+    border:1.5px solid var(--border); background:var(--surface-alt);
+    cursor:pointer; transition:border-color .15s, background .15s;
+    font-size:0.95rem;
+  }
+  .opt:hover{border-color:#9FC6BF;}
+  .opt input{accent-color:var(--teal); width:18px; height:18px; flex:0 0 auto;}
+  .opt.checked{border-color:var(--teal); background:var(--teal-light);}
+  .opt.big{padding:16px; font-weight:600; font-size:1rem;}
+
+  .other-input{margin-top:8px; display:none;}
+  .other-input.show{display:block;}
+
+  .nav-row{
+    display:flex; justify-content:space-between; gap:12px; margin-top:6px;
+  }
+  button{
+    font-family:inherit; font-size:0.98rem; font-weight:600;
+    padding:13px 22px; border-radius:999px; border:none; cursor:pointer;
+    transition:transform .1s, opacity .15s, background .15s;
+  }
+  button:active{transform:scale(0.97);}
+  .btn-primary{background:var(--teal); color:#fff;}
+  .btn-primary:hover{background:var(--teal-dark);}
+  .btn-ghost{background:transparent; color:var(--teal); border:1.5px solid var(--border);}
+  .btn-ghost:hover{border-color:var(--teal);}
+  .btn-danger{background:transparent; color:var(--coral); border:1.5px solid #EBCFC1;}
+  .btn-block{width:100%;}
+  button:disabled{opacity:0.4; cursor:not-allowed;}
+
+  .step{display:none;}
+  .step.active{display:block; animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  .end-card{text-align:center; padding:42px 24px;}
+  .end-icon{font-size:2.4rem; margin-bottom:10px;}
+
+  .topbar{display:flex; justify-content:flex-end; gap:10px; margin-bottom:12px;}
+  .topbar button{padding:9px 16px; font-size:0.85rem;}
+
+  /* Records view */
+  .records-table{width:100%; border-collapse:collapse; font-size:0.82rem;}
+  .records-table th, .records-table td{
+    text-align:left; padding:9px 10px; border-bottom:1px solid var(--border); vertical-align:top;
+  }
+  .records-table th{color:var(--ink-soft); font-weight:600; background:var(--surface-alt);}
+  .tag{display:inline-block; background:var(--teal-light); color:var(--teal-dark); padding:2px 8px; border-radius:6px; font-size:0.76rem; margin:1px 3px 1px 0;}
+  .declined{color:var(--coral); font-weight:600;}
+  .empty-state{text-align:center; padding:40px 10px; color:var(--ink-soft);}
+  .privacy-note{
+    font-size:0.78rem; color:var(--ink-faint); background:var(--surface-alt);
+    border-radius:var(--radius-sm); padding:12px 14px; margin-top:14px; border:1px dashed var(--border);
+  }
+  .count-pill{
+    display:inline-block; background:var(--teal); color:#fff; border-radius:999px;
+    padding:2px 10px; font-size:0.78rem; margin-left:8px; vertical-align:middle;
+  }
+  .case-badge{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:var(--teal-light); border:1px solid #BFE0D9; border-radius:var(--radius-sm);
+    padding:12px 16px; margin-bottom:20px;
+  }
+  .case-badge .lbl{font-size:0.8rem; color:var(--teal-dark); font-weight:600;}
+  .case-badge .no{font-size:1.3rem; font-weight:700; color:var(--teal-dark); letter-spacing:0.04em;}
+  .counter-row{
+    display:flex; align-items:center; gap:8px; font-size:0.82rem; color:var(--ink-soft);
+  }
+  .counter-row input{width:80px; padding:6px 8px; border-radius:8px; border:1.5px solid var(--border); font-size:0.85rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <svg class="hero-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="6" width="38" height="52" rx="4" fill="#0D4247" opacity="0.4"/>
+      <rect x="14" y="10" width="38" height="52" rx="4" fill="#fff" opacity="0.95"/>
+      <path d="M22 24l6 6 12-13" stroke="#175F67" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="22" y1="40" x2="46" y2="40" stroke="#B7D6D0" stroke-width="2.6" stroke-linecap="round"/>
+      <line x1="22" y1="47" x2="40" y2="47" stroke="#B7D6D0" stroke-width="2.6" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <h1>出院準備需求評估表單</h1>
+      <p>家庭照顧者訪視收案工具・研究資料僅儲存於本機瀏覽器</p>
+    </div>
+  </div>
+
+  <div class="topbar">
+    <button class="btn-ghost" id="btnToRecords" type="button">📋 已收案清單</button>
+  </div>
+
+  <!-- FORM VIEW -->
+  <div id="formView">
+    <div class="progress" id="progressBar"></div>
+    <div class="progress-label" id="progressLabel"></div>
+
+    <!-- Step 0: Consent -->
+    <div class="step active" data-step="0">
+      <div class="card">
+        <h2>研究說明與同意</h2>
+        <p class="hint">網路互動與資料傳輸無法完全擔保資料機密性；研究團隊將選擇安全的網路環境，並採取帳號權限、密碼及去識別化等措施降低風險。</p>
+        <div class="field">
+          <label class="q">我已閱讀並了解研究相關說明。本人已完成研究人員的書面知情同意程序，並同意填寫本線上問卷；若完成填答並送出資料，即表示同意將所填資料提供本研究分析使用。<span class="req">*</span></label>
+          <div class="options" id="consentGroup">
+            <label class="opt big"><input type="radio" name="consent" value="同意">同意</label>
+            <label class="opt big"><input type="radio" name="consent" value="不同意">不同意</label>
+          </div>
+        </div>
+        <div class="nav-row">
+          <span></span>
+          <button class="btn-primary" id="btn0Next" type="button">下一步</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 1: 基本資料 -->
+    <div class="step" data-step="1">
+      <div class="card">
+        <h2>基本資料</h2>
+        <div class="case-badge">
+          <span class="lbl">本次收案編號</span>
+          <span class="no" id="caseNoDisplay">—</span>
+        </div>
+        <div class="field">
+          <label class="q" for="bedNo">病人床號</label>
+          <input type="text" id="bedNo" placeholder="例如：5A-12">
+        </div>
+        <div class="field">
+          <label class="q" for="phone">我的連絡電話</label>
+          <input type="tel" id="phone" placeholder="方便聯繫的電話">
+        </div>
+        <div class="field">
+          <label class="q">我是病人的</label>
+          <div class="options grid" id="relationGroup">
+            <label class="opt"><input type="radio" name="relation" value="子女">子女</label>
+            <label class="opt"><input type="radio" name="relation" value="配偶">配偶</label>
+            <label class="opt"><input type="radio" name="relation" value="媳婦">媳婦</label>
+            <label class="opt"><input type="radio" name="relation" value="父母">父母</label>
+            <label class="opt"><input type="radio" name="relation" value="孫子女">孫子女</label>
+            <label class="opt"><input type="radio" name="relation" value="親戚">親戚</label>
+            <label class="opt"><input type="radio" name="relation" value="其他">其他</label>
+          </div>
+          <input type="text" class="other-input" id="relationOther" placeholder="請說明">
+        </div>
+        <div class="nav-row">
+          <button class="btn-ghost" data-back type="button">上一步</button>
+          <button class="btn-primary" data-next type="button">下一步</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: 病人現況 I -->
+    <div class="step" data-step="2">
+      <div class="card">
+        <h2>病人目前狀況（一）</h2>
+        <div class="field">
+          <label class="q">病人目前居住情形（請勾選或選填）</label>
+          <div class="options" id="livingGroup">
+            <label class="opt"><input type="checkbox" value="和家人同住">和家人同住</label>
+            <label class="opt"><input type="checkbox" value="住在機構">住在機構</label>
+            <label class="opt"><input type="checkbox" value="病人是獨居">病人是獨居</label>
+            <label class="opt"><input type="checkbox" value="其他">其他</label>
+          </div>
+          <input type="text" class="other-input" id="livingOther" placeholder="請說明">
+        </div>
+        <div class="field">
+          <label class="q">病人目前的慢性病有哪些（請勾選或選填）</label>
+          <div class="options grid" id="chronicGroup">
+            <label class="opt"><input type="checkbox" value="高血壓">高血壓</label>
+            <label class="opt"><input type="checkbox" value="糖尿病">糖尿病</label>
+            <label class="opt"><input type="checkbox" value="癌症">癌症</label>
+            <label class="opt"><input type="checkbox" value="慢性肺病">慢性肺病</label>
+            <label class="opt"><input type="checkbox" value="腎臟病">腎臟病</label>
+            <label class="opt"><input type="checkbox" value="中風">中風</label>
+            <label class="opt"><input type="checkbox" value="心臟病">心臟病</label>
+            <label class="opt"><input type="checkbox" value="其他">其他</label>
+          </div>
+          <input type="text" class="other-input" id="chronicOther" placeholder="請說明">
+        </div>
+        <div class="field">
+          <label class="q">病人目前身上管路有哪些（請勾選或選填）</label>
+          <div class="options grid" id="tubesGroup">
+            <label class="opt"><input type="checkbox" value="鼻胃管">鼻胃管</label>
+            <label class="opt"><input type="checkbox" value="氣切管">氣切管</label>
+            <label class="opt"><input type="checkbox" value="尿管">尿管</label>
+            <label class="opt"><input type="checkbox" value="引流管">引流管</label>
+            <label class="opt"><input type="checkbox" value="無">無</label>
+            <label class="opt"><input type="checkbox" value="其他">其他</label>
+          </div>
+          <input type="text" class="other-input" id="tubesOther" placeholder="請說明">
+        </div>
+        <div class="nav-row">
+          <button class="btn-ghost" data-back type="button">上一步</button>
+          <button class="btn-primary" data-next type="button">下一步</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: 病人現況 II -->
+    <div class="step" data-step="3">
+      <div class="card">
+        <h2>病人目前狀況（二）</h2>
+        <div class="field">
+          <label class="q">病人目前身上傷口情形（請勾選或選填）</label>
+          <div class="options grid" id="woundGroup">
+            <label class="opt"><input type="checkbox" value="無">無</label>
+            <label class="opt"><input type="checkbox" value="一般傷口">一般傷口</label>
+            <label class="opt"><input type="checkbox" value="壓瘡">壓瘡</label>
+            <label class="opt"><input type="checkbox" value="手術傷口">手術傷口</label>
+            <label class="opt"><input type="checkbox" value="造口傷口">造口傷口</label>
+            <label class="opt"><input type="checkbox" value="其他">其他</label>
+          </div>
+          <input type="text" class="other-input" id="woundOther" placeholder="請說明">
+        </div>
+        <div class="field">
+          <label class="q">目前病人的活動能力（請勾選）</label>
+          <div class="options" id="mobilityGroup">
+            <label class="opt"><input type="checkbox" value="可自行移動">可自行移動</label>
+            <label class="opt"><input type="checkbox" value="需使用輔具（輪椅、拐杖）">需使用輔具（輪椅、拐杖）</label>
+            <label class="opt"><input type="checkbox" value="需要他人協助移位">需要他人協助移位</label>
+            <label class="opt"><input type="checkbox" value="臥床不能移動">臥床不能移動</label>
+          </div>
+        </div>
+        <div class="nav-row">
+          <button class="btn-ghost" data-back type="button">上一步</button>
+          <button class="btn-primary" data-next type="button">下一步</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: 出院用物準備 -->
+    <div class="step" data-step="4">
+      <div class="card">
+        <h2>出院用物準備</h2>
+        <div class="field">
+          <label class="q">目前家中已有哪些儀器或是輔具（請勾選或選填）</label>
+          <div class="options grid" id="equipGroup">
+            <label class="opt"><input type="checkbox" value="氧氣機">氧氣機</label>
+            <label class="opt"><input type="checkbox" value="氣墊床">氣墊床</label>
+            <label class="opt"><input type="checkbox" value="血壓計">血壓計</label>
+            <label class="opt"><input type="checkbox" value="血氧機">血氧機</label>
+            <label class="opt"><input type="checkbox" value="血糖機">血糖機</label>
+            <label class="opt"><input type="checkbox" value="輪椅">輪椅</label>
+            <label class="opt"><input type="checkbox" value="便盆椅">便盆椅</label>
+            <label class="opt"><input type="checkbox" value="抽痰機">抽痰機</label>
+            <label class="opt"><input type="checkbox" value="助行器">助行器</label>
+            <label class="opt"><input type="checkbox" value="其他">其他</label>
+          </div>
+          <input type="text" class="other-input" id="equipOther" placeholder="請說明">
+        </div>
+        <div class="nav-row">
+          <button class="btn-ghost" data-back type="button">上一步</button>
+          <button class="btn-primary" data-next type="button">下一步</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5: 出院後續安排 + 社福 + 不清楚問題 -->
+    <div class="step" data-step="5">
+      <div class="card">
+        <h2>出院後續安排・社會福利及長照申請</h2>
+        <div class="field">
+          <label class="q">目前預計病人出院後的安排去向（請勾選或選填）</label>
+          <div class="options grid" id="dischargeGroup">
+            <label class="opt"><input type="checkbox" value="返家照顧">返家照顧</label>
+            <label class="opt"><input type="checkbox" value="機構(長照中心)">機構(長照中心)</label>
+            <label class="opt"><input type="checkbox" value="日間照護中心">日間照護中心</label>
+            <label class="opt"><input type="checkbox" value="不確定">不確定</label>
+            <label class="opt"><input type="checkbox" value="復健醫院">復健醫院</label>
+            <label class="opt"><input type="checkbox" value="其他">其他</label>
+          </div>
+          <input type="text" class="other-input" id="dischargeOther" placeholder="請說明">
+        </div>
+        <div class="field">
+          <label class="q">病人目前有使用哪些社會福利（請勾選或選填）<span class="req">*</span></label>
+          <div class="options grid" id="welfareGroup">
+            <label class="opt"><input type="checkbox" value="長照3.0">長照3.0</label>
+            <label class="opt"><input type="checkbox" value="中低收入戶補助">中低收入戶補助</label>
+            <label class="opt"><input type="checkbox" value="身心障礙手冊">身心障礙手冊</label>
+            <label class="opt"><input type="checkbox" value="重大傷病卡">重大傷病卡</label>
+            <label class="opt"><input type="checkbox" value="未使用任何服務">未使用任何服務</label>
+            <label class="opt"><input type="checkbox" value="其他">其他</label>
+          </div>
+          <input type="text" class="other-input" id="welfareOther" placeholder="請說明">
+        </div>
+        <div class="field">
+          <label class="q">我目前尚不清楚的問題（請勾選或選填）</label>
+          <div class="options" id="unclearGroup">
+            <label class="opt"><input type="checkbox" value="我不知道如何照顧病人">我不知道如何照顧病人</label>
+            <label class="opt"><input type="checkbox" value="我不知道能不能申請輔具">我不知道能不能申請輔具</label>
+            <label class="opt"><input type="checkbox" value="我不知道什麼是巴氏量表">我不知道什麼是巴氏量表</label>
+            <label class="opt"><input type="checkbox" value="我不知道長照服務是甚麼">我不知道長照服務是甚麼</label>
+            <label class="opt"><input type="checkbox" value="我不知道居家服務是甚麼">我不知道居家服務是甚麼</label>
+            <label class="opt"><input type="checkbox" value="我不知道喘息服務是甚麼">我不知道喘息服務是甚麼</label>
+            <label class="opt"><input type="checkbox" value="我不知道要選擇甚麼機構">我不知道要選擇甚麼機構</label>
+            <label class="opt"><input type="checkbox" value="其他">其他</label>
+          </div>
+          <input type="text" class="other-input" id="unclearOther" placeholder="請說明">
+        </div>
+        <p class="hint" style="margin-top:6px;">完成本問卷並按下「提交」，即表示您同意參與本研究，並同意提供所填寫之資料作為研究分析使用。</p>
+        <div class="nav-row">
+          <button class="btn-ghost" data-back type="button">上一步</button>
+          <button class="btn-primary" id="btnSubmit" type="button">提交資料</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- End: declined -->
+    <div class="step" data-step="declined">
+      <div class="card end-card">
+        <div class="end-icon">🙏</div>
+        <h2>感謝您的時間</h2>
+        <p class="hint">已記錄本次未同意參與，不會收集其他資料。</p>
+        <button class="btn-primary" id="btnRestartDeclined" type="button">開始下一位收案</button>
+      </div>
+    </div>
+
+    <!-- End: submitted -->
+    <div class="step" data-step="done">
+      <div class="card end-card">
+        <div class="end-icon">✅</div>
+        <h2>提交完成</h2>
+        <p class="hint">資料已儲存於本機。建議定期使用「已收案清單」匯出備份。</p>
+        <p class="hint" id="emailStatus" style="font-weight:600;"></p>
+        <div class="nav-row" style="justify-content:center; gap:14px;">
+          <button class="btn-primary" id="btnRestartDone" type="button">填寫下一位</button>
+          <button class="btn-ghost" id="btnGoRecordsDone" type="button">查看已收案清單</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECORDS VIEW -->
+  <div id="recordsView" style="display:none;">
+    <div class="card">
+      <h2>已收案清單 <span class="count-pill" id="recordCount">0</span></h2>
+      <p class="hint">資料僅儲存在本裝置的瀏覽器中，清除瀏覽器資料會一併移除，請定期匯出備份。</p>
+      <div class="counter-row" style="margin-bottom:14px;">
+        <span>下一個收案編號：</span>
+        <input type="text" id="counterInput" inputmode="numeric">
+        <button class="btn-ghost" id="btnSetCounter" type="button" style="padding:6px 14px; font-size:0.8rem;">設定</button>
+      </div>
+      <div class="nav-row" style="margin-bottom:14px;">
+        <button class="btn-ghost" id="btnBackToForm" type="button">← 返回填寫</button>
+        <div style="display:flex; gap:10px;">
+          <button class="btn-ghost" id="btnExportCsv" type="button">匯出 CSV</button>
+          <button class="btn-ghost" id="btnExportJson" type="button">匯出 JSON</button>
+          <button class="btn-danger" id="btnClearAll" type="button">清除全部</button>
+        </div>
+      </div>
+      <div id="recordsTableWrap"></div>
+      <div class="privacy-note">研究資料保密提醒：請避免在他人可見的螢幕上長時間顯示本清單，匯出檔案請妥善保管並依研究倫理審查規範儲存。</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'dischargePrepFormRecords_v1';
+  const EMAILJS_PUBLIC_KEY = 'NL1ta8YryZtxfwvFB';
+  const EMAILJS_SERVICE_ID = 'service_3wbq5a5';
+  const EMAILJS_TEMPLATE_ID = 'template_7bocphm';
+  if (window.emailjs) emailjs.init(EMAILJS_PUBLIC_KEY);
+  const stepsOrder = [0,1,2,3,4,5];
+  const stepLabels = ['同意書','基本資料','病人狀況(一)','病人狀況(二)','出院用物','出院安排與社福'];
+  let currentIndex = 0;
+  let draft = {};
+
+  const formView = document.getElementById('formView');
+  const recordsView = document.getElementById('recordsView');
+  const progressBar = document.getElementById('progressBar');
+  const progressLabel = document.getElementById('progressLabel');
+
+  function stepEl(key){ return document.querySelector('.step[data-step="'+key+'"]'); }
+
+  function renderProgress(){
+    progressBar.innerHTML = '';
+    stepsOrder.forEach((s, i)=>{
+      const seg = document.createElement('div');
+      seg.className = 'seg' + (i < currentIndex ? ' done' : (i === currentIndex ? ' current' : ''));
+      progressBar.appendChild(seg);
+    });
+    progressLabel.textContent = (currentIndex+1) + ' / ' + stepsOrder.length + '　' + stepLabels[currentIndex];
+  }
+
+  function showStep(key){
+    document.querySelectorAll('.step').forEach(el=>el.classList.remove('active'));
+    stepEl(key).classList.add('active');
+    if (typeof key === 'number'){
+      currentIndex = key;
+      progressBar.parentElement.style.display='flex';
+      progressLabel.style.display='block';
+      renderProgress();
+    } else {
+      progressBar.style.display='none';
+      progressLabel.style.display='none';
+    }
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  // checked style + "其他" reveal
+  document.querySelectorAll('.opt input').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      const optLabel = inp.closest('.opt');
+      const group = inp.closest('.options');
+      if (inp.type === 'radio'){
+        group.querySelectorAll('.opt').forEach(o=>o.classList.remove('checked'));
+        if (inp.checked) optLabel.classList.add('checked');
+      } else {
+        optLabel.classList.toggle('checked', inp.checked);
+      }
+      // reveal matching "其他" text input if this group has one
+      if (inp.value === '其他'){
+        const otherInput = group.parentElement.querySelector('.other-input');
+        if (otherInput){
+          otherInput.classList.toggle('show', inp.checked);
+          if (inp.checked) otherInput.focus();
+        }
+      }
+    });
+  });
+
+  function getChecked(groupId){
+    return Array.from(document.querySelectorAll('#'+groupId+' input:checked')).map(i=>i.value);
+  }
+  function getRadio(name){
+    const el = document.querySelector('input[name="'+name+'"]:checked');
+    return el ? el.value : '';
+  }
+  function val(id){ return document.getElementById(id).value.trim(); }
+
+  // Step 0 -> consent branch
+  document.getElementById('btn0Next').addEventListener('click', ()=>{
+    const c = getRadio('consent');
+    if (!c){ alert('請選擇是否同意參與研究'); return; }
+    if (c === '不同意'){
+      saveRecord({ id: genId(), timestamp: nowStr(), consent:'不同意' });
+      showStep('declined');
+    } else {
+      draft.consent = '同意';
+      if (!draft.caseNo) draft.caseNo = nextCaseNo();
+      document.getElementById('caseNoDisplay').textContent = draft.caseNo;
+      showStep(1);
+    }
+  });
+
+  document.getElementById('btnRestartDeclined').addEventListener('click', resetAll);
+  document.getElementById('btnRestartDone').addEventListener('click', resetAll);
+  document.getElementById('btnGoRecordsDone').addEventListener('click', ()=>{ resetAll(false); openRecords(); });
+
+  document.querySelectorAll('[data-next]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const next = Math.min(currentIndex+1, stepsOrder.length-1);
+      showStep(next);
+    });
+  });
+  document.querySelectorAll('[data-back]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const prev = Math.max(currentIndex-1, 0);
+      showStep(prev);
+    });
+  });
+
+  document.getElementById('btnSubmit').addEventListener('click', ()=>{
+    const welfare = getChecked('welfareGroup');
+    if (welfare.length === 0){
+      alert('「病人目前有使用哪些社會福利」為必填，請至少選擇一項');
+      return;
+    }
+    const record = {
+      id: genId(),
+      caseNo: draft.caseNo || nextCaseNo(),
+      timestamp: nowStr(),
+      consent: '同意',
+      bedNo: val('bedNo'),
+      phone: val('phone'),
+      relation: getRadio('relation'),
+      relationOther: val('relationOther'),
+      living: getChecked('livingGroup'),
+      livingOther: val('livingOther'),
+      chronic: getChecked('chronicGroup'),
+      chronicOther: val('chronicOther'),
+      tubes: getChecked('tubesGroup'),
+      tubesOther: val('tubesOther'),
+      wound: getChecked('woundGroup'),
+      woundOther: val('woundOther'),
+      mobility: getChecked('mobilityGroup'),
+      equip: getChecked('equipGroup'),
+      equipOther: val('equipOther'),
+      discharge: getChecked('dischargeGroup'),
+      dischargeOther: val('dischargeOther'),
+      welfare: welfare,
+      welfareOther: val('welfareOther'),
+      unclear: getChecked('unclearGroup'),
+      unclearOther: val('unclearOther')
+    };
+    saveRecord(record);
+    sendNotificationEmail(record);
+    showStep('done');
+  });
+
+  function sendNotificationEmail(record){
+    const statusEl = document.getElementById('emailStatus');
+    if (!window.emailjs){
+      if (statusEl) statusEl.textContent = '⚠️ 未載入寄信功能，通知信未寄出。';
+      return;
+    }
+    const payload = {
+      caseNo: record.caseNo,
+      timestamp: record.timestamp,
+      bedNo: record.bedNo,
+      phone: record.phone,
+      relation: record.relation + (record.relationOther ? '（'+record.relationOther+'）' : ''),
+      living: (record.living||[]).join('、') + (record.livingOther ? '、'+record.livingOther : ''),
+      chronic: (record.chronic||[]).join('、') + (record.chronicOther ? '、'+record.chronicOther : ''),
+      tubes: (record.tubes||[]).join('、') + (record.tubesOther ? '、'+record.tubesOther : ''),
+      wound: (record.wound||[]).join('、') + (record.woundOther ? '、'+record.woundOther : ''),
+      mobility: (record.mobility||[]).join('、'),
+      equip: (record.equip||[]).join('、') + (record.equipOther ? '、'+record.equipOther : ''),
+      discharge: (record.discharge||[]).join('、') + (record.dischargeOther ? '、'+record.dischargeOther : ''),
+      welfare: (record.welfare||[]).join('、') + (record.welfareOther ? '、'+record.welfareOther : ''),
+      unclear: (record.unclear||[]).join('、') + (record.unclearOther ? '、'+record.unclearOther : '') || '無'
+    };
+    if (statusEl) statusEl.textContent = '📤 通知信寄送中…';
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, payload)
+      .then(()=>{ if (statusEl) statusEl.textContent = '✅ 通知信已寄出'; })
+      .catch((err)=>{ if (statusEl) statusEl.textContent = '⚠️ 通知信寄送失敗（資料已儲存於本機，不影響收案）'; console.error(err); });
+  }
+
+  function genId(){
+    return (crypto && crypto.randomUUID) ? crypto.randomUUID() : ('id-'+Date.now()+'-'+Math.random().toString(16).slice(2));
+  }
+  const COUNTER_KEY = 'dischargePrepFormCounter';
+  function getCounter(){
+    const n = parseInt(localStorage.getItem(COUNTER_KEY), 10);
+    return isNaN(n) ? 0 : n;
+  }
+  function nextCaseNo(){
+    const n = getCounter() + 1;
+    localStorage.setItem(COUNTER_KEY, String(n));
+    return String(n).padStart(3, '0');
+  }
+  function nowStr(){
+    return new Date().toLocaleString('zh-TW', {hour12:false});
+  }
+  function loadRecords(){
+    try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }catch(e){ return []; }
+  }
+  function saveRecord(r){
+    const all = loadRecords();
+    all.push(r);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+  }
+
+  function resetAll(showFormStep0){
+    document.querySelectorAll('input[type=text], input[type=tel]').forEach(i=>i.value='');
+    document.querySelectorAll('input[type=checkbox], input[type=radio]').forEach(i=>i.checked=false);
+    document.querySelectorAll('.opt.checked').forEach(o=>o.classList.remove('checked'));
+    document.querySelectorAll('.other-input.show').forEach(o=>o.classList.remove('show'));
+    document.getElementById('caseNoDisplay').textContent = '—';
+    const es = document.getElementById('emailStatus'); if (es) es.textContent = '';
+    draft = {};
+    if (showFormStep0 !== false) showStep(0);
+  }
+
+  // ---- Records view ----
+  document.getElementById('btnToRecords').addEventListener('click', openRecords);
+  document.getElementById('btnBackToForm').addEventListener('click', ()=>{
+    recordsView.style.display='none';
+    formView.style.display='block';
+  });
+
+  function openRecords(){
+    formView.style.display='none';
+    recordsView.style.display='block';
+    renderRecords();
+    document.getElementById('counterInput').value = getCounter() + 1;
+  }
+
+  document.getElementById('btnSetCounter').addEventListener('click', ()=>{
+    const raw = document.getElementById('counterInput').value.trim();
+    const n = parseInt(raw, 10);
+    if (isNaN(n) || n < 1){ alert('請輸入一個大於 0 的數字'); return; }
+    localStorage.setItem(COUNTER_KEY, String(n - 1));
+    alert('下一筆收案編號將從 '+String(n).padStart(3,'0')+' 開始');
+  });
+
+  function joinTag(arr){
+    if (!arr || !arr.length) return '<span style="color:var(--ink-faint)">—</span>';
+    return arr.map(v=>'<span class="tag">'+escapeHtml(v)+'</span>').join('');
+  }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderRecords(){
+    const all = loadRecords();
+    document.getElementById('recordCount').textContent = all.length;
+    const wrap = document.getElementById('recordsTableWrap');
+    if (all.length === 0){
+      wrap.innerHTML = '<div class="empty-state">尚未有收案資料。完成表單提交後會顯示於此。</div>';
+      return;
+    }
+    let rows = all.slice().reverse().map(r=>{
+      if (r.consent === '不同意'){
+        return '<tr><td>'+escapeHtml(r.caseNo||'—')+'</td><td>'+escapeHtml(r.timestamp)+'</td><td colspan="4" class="declined">未同意參與</td>'
+          +'<td><button class="btn-danger" onclick="window.__delRec(\''+r.id+'\')">刪除</button></td></tr>';
+      }
+      return '<tr>'
+        +'<td><strong>'+escapeHtml(r.caseNo||'—')+'</strong></td>'
+        +'<td>'+escapeHtml(r.timestamp)+'</td>'
+        +'<td>'+escapeHtml(r.bedNo||'—')+'</td>'
+        +'<td>'+escapeHtml(r.relation||'—')+(r.relationOther?'（'+escapeHtml(r.relationOther)+'）':'')+'</td>'
+        +'<td>'+joinTag(r.chronic)+'</td>'
+        +'<td>'+joinTag(r.welfare)+'</td>'
+        +'<td><button class="btn-danger" onclick="window.__delRec(\''+r.id+'\')">刪除</button></td>'
+        +'</tr>';
+    }).join('');
+    wrap.innerHTML = '<div style="overflow-x:auto;"><table class="records-table">'
+      +'<thead><tr><th>編號</th><th>時間</th><th>床號</th><th>關係</th><th>慢性病</th><th>社會福利</th><th></th></tr></thead>'
+      +'<tbody>'+rows+'</tbody></table></div>';
+  }
+
+  window.__delRec = function(id){
+    if (!confirm('確定刪除此筆資料？此動作無法復原。')) return;
+    const all = loadRecords().filter(r=>r.id !== id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+    renderRecords();
+  };
+
+  document.getElementById('btnClearAll').addEventListener('click', ()=>{
+    if (!confirm('確定清除全部收案資料？此動作無法復原，建議先匯出備份。')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    renderRecords();
+  });
+
+  document.getElementById('btnExportJson').addEventListener('click', ()=>{
+    const all = loadRecords();
+    downloadFile('discharge_prep_records_'+dateStamp()+'.json', JSON.stringify(all, null, 2), 'application/json');
+  });
+
+  document.getElementById('btnExportCsv').addEventListener('click', ()=>{
+    const all = loadRecords();
+    const cols = ['caseNo','id','timestamp','consent','bedNo','phone','relation','relationOther',
+      'living','livingOther','chronic','chronicOther','tubes','tubesOther','wound','woundOther',
+      'mobility','equip','equipOther','discharge','dischargeOther','welfare','welfareOther','unclear','unclearOther'];
+    const arrCols = new Set(['living','chronic','tubes','wound','mobility','equip','discharge','welfare','unclear']);
+    const lines = [cols.join(',')];
+    all.forEach(r=>{
+      const row = cols.map(c=>{
+        let v = r[c];
+        if (v === undefined || v === null) v = '';
+        if (arrCols.has(c) && Array.isArray(v)) v = v.join(';');
+        v = String(v).replace(/"/g,'""');
+        return '"'+v+'"';
+      });
+      lines.push(row.join(','));
+    });
+    downloadFile('discharge_prep_records_'+dateStamp()+'.csv', '\uFEFF'+lines.join('\n'), 'text/csv');
+  });
+
+  function dateStamp(){
+    const d = new Date();
+    return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')
+      +'_'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0');
+  }
+  function downloadFile(filename, content, mime){
+    const blob = new Blob([content], {type: mime+';charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  showStep(0);
+})();
+</script>
+</body>
+</html>
